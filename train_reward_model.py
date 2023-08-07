@@ -216,7 +216,7 @@ elif "chatglm" in script_args.model_name:
         q_config = BitsAndBytesConfig(load_in_4bit= True,
                                   bnb_4bit_quant_type='nf4',
                                   bnb_4bit_use_double_quant=True,
-                                  bnb_4bit_compute_dtype="fp16")
+                                  bnb_4bit_compute_dtype=torch.float16)
     )
 else:
     model = AutoModelForSequenceClassification.from_pretrained(
