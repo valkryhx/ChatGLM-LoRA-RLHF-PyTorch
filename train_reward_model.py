@@ -181,7 +181,8 @@ if "llama" in script_args.model_name or "vicuna" in script_args.model_name or "V
     )
 else:
     # required for gpt2
-    tokenizer.pad_token = tokenizer.eos_token
+    #tokenizer.pad_token = tokenizer.eos_token
+    print(f"tokenizer.pad_token={tokenizer.pad_token}")
 
 device_map = "auto"
 world_size = int(os.environ.get("WORLD_SIZE", 1))
