@@ -145,9 +145,10 @@ training_args = TrainingArguments(
     # bf16=script_args.bf16,
     # fp16=True, #! this is important! if True, cuda out of memory.
     logging_strategy="steps",
-    logging_steps=10,
+    logging_steps=2,
     optim=script_args.optim,
     lr_scheduler_type=script_args.lr_scheduler_type,
+    report_to =["tensorboard"]
 )
 
 # Load the value-head model and tokenizer.
