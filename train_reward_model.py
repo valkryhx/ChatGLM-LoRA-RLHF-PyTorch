@@ -25,7 +25,7 @@ from transformers import (
 )
 from transformers.utils import PaddingStrategy
 from transformers import LlamaForSequenceClassification, LlamaConfig, LlamaTokenizer
-from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM , AutoModel
 
 from reward_model import RewardModel
 
@@ -220,7 +220,7 @@ elif "chatglm" in script_args.model_name:
     #     device_map=device_map,
     #     quantization_config=q_config,
     # )
-    model = AutoModelForSeq2SeqLM.from_pretrained(
+    model = AutoModel.from_pretrained(
         script_args.model_name,
         #num_labels=1,
         # torch_dtype=torch.bfloat16,
