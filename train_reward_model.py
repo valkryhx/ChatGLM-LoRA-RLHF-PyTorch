@@ -225,7 +225,7 @@ else:
         trust_remote_code=True,
         load_in_8bit=True,
         device_map=device_map,
-        trust_remote_code=True,
+        
     )
 
 print("model: ", type(model))
