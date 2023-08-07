@@ -214,7 +214,7 @@ elif "chatglm" in script_args.model_name:
         script_args.model_name,
         num_labels=1,
         # torch_dtype=torch.bfloat16,
-        torch_dtype=torch.float32,
+        torch_dtype=torch.float16,
         trust_remote_code=True,
         load_in_4bit=True,
         device_map=device_map,
