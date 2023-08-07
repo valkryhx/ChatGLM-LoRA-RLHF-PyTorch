@@ -10,7 +10,8 @@ import torch.nn as nn
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 from datasets import load_dataset
-from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_int8_training
+from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_int8_training, prepare_model_for_kbit_training
+import bitsandbytes as bnb
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
@@ -210,6 +211,10 @@ elif "chatglm" in script_args.model_name:
         trust_remote_code=True,
         load_in_8bit=True,
         device_map=device_map,
+        q_config = BitsAndBytesConfig(load_in_4bit= True,
+                                  bnb_4bit_quant_type='nf4',
+                                  bnb_4bit_use_double_quant=True,
+                                  bnb_4bit_compute_dtype="fp16")
     )
 else:
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -220,14 +225,32 @@ else:
         trust_remote_code=True,
         load_in_8bit=True,
         device_map=device_map,
+        trust_remote_code=True,
     )
 
 print("model: ", type(model))
 
-model = prepare_model_for_int8_training(model)
-
+model = prepare_model_for_kbit_training(model)
+print(f'memory footprint of model: {model.get_memory_footprint()/(1024*1024*1024)} GB')
 print("model: ", type(model))
+def find_all_linear_names(model):
+    """
+    找出所有全连接层，为所有全连接添加adapter
+    """
+    cls = bnb.nn.Linear4bit
+    lora_module_names = set()
+    for name, module in model.named_modules():
+        if isinstance(module, cls):
+            names = name.split('.')
+            lora_module_names.add(names[0] if len(names) == 1 else names[-1])
 
+    if 'lm_head' in lora_module_names:  # needed for 16-bit
+        lora_module_names.remove('lm_head')
+    if  'output_layer' in lora_module_names:
+        lora_module_names.remove('output_layer')
+    return list(lora_module_names)
+
+target_modules = find_all_linear_names(model)
 peft_config = LoraConfig(
     task_type=TaskType.SEQ_CLS,
     inference_mode=False,
@@ -242,21 +265,21 @@ model = get_peft_model(model, peft_config)
 model.print_trainable_parameters()
 
 # Need to do this for gpt2, because it doesn't have an official pad token.
-tokenizer.pad_token = tokenizer.eos_token
-model.config.pad_token_id = tokenizer.eos_token_id
-model.config.use_cache = not script_args.gradient_checkpointing
+#tokenizer.pad_token = tokenizer.eos_token
+#model.config.pad_token_id = tokenizer.eos_token_id
+#model.config.use_cache = not script_args.gradient_checkpointing
 num_proc = 1  # Can adjust to be higher if you have more processors.
 original_columns = train_dataset.column_names
 
 reward_model = RewardModel(model.config, model.transformer, tokenizer)
 print(reward_model)
-layers = reward_model.transformer.layers
+#layers = reward_model.transformer.layers
 # Freeze the first 70% of the hidden layers of the reward model backbone
 # parser.add_argument("--freeze_ratio", type=float, default=0.0, help="ratio of layers frozen for reward training")
-num_layers = len(layers)
-num_frozen = int(0.7 * num_layers)
-for layer in layers[:num_frozen]:
-    layer.requires_grad_(False)
+#num_layers = len(layers)
+#num_frozen = int(0.7 * num_layers)
+#for layer in layers[:num_frozen]:
+#    layer.requires_grad_(False)
 
 # if args.checkpoint is not None:
 #     checkpoints = glob.glob(args.checkpoint.replace("star", "*"))
