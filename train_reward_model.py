@@ -231,7 +231,7 @@ print("model: ", type(model))
 peft_config = LoraConfig(
     task_type=TaskType.SEQ_CLS,
     inference_mode=False,
-    r=8,
+    r=64,  # for qlora 64 is ok
     lora_alpha=16,  # 32,
     lora_dropout=0.05,  # 0.1,
     bias="none",
@@ -245,7 +245,7 @@ model.print_trainable_parameters()
 tokenizer.pad_token = tokenizer.eos_token
 model.config.pad_token_id = tokenizer.eos_token_id
 model.config.use_cache = not script_args.gradient_checkpointing
-num_proc = 24  # Can adjust to be higher if you have more processors.
+num_proc = 1  # Can adjust to be higher if you have more processors.
 original_columns = train_dataset.column_names
 
 reward_model = RewardModel(model.config, model.transformer, tokenizer)
