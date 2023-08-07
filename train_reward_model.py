@@ -425,6 +425,7 @@ trainer = RewardTrainer(
     compute_metrics=compute_metrics,
     data_collator=RewardDataCollatorWithPadding(
         tokenizer=tokenizer, max_length=512, pad_to_multiple_of=8),
+    report_to ="tensorboard"
 )
 
 model.config.use_cache = False
