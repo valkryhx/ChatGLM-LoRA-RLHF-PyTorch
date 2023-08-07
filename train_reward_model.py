@@ -258,6 +258,7 @@ target_modules = find_all_linear_names(model)
 peft_config = LoraConfig(
     task_type=TaskType.SEQ_CLS,
     inference_mode=False,
+    target_modules = target_modules ,
     r=64,  # for qlora 64 is ok
     lora_alpha=16,  # 32,
     lora_dropout=0.05,  # 0.1,
