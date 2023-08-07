@@ -37,7 +37,7 @@ class RewardModel(PreTrainedModel):
         print("model_type: ", self.model_type)
         self.pad_id = tokenizer.pad_token_id
         self.transformer = model
-        self.v_head = nn.Linear(config.hidden_size, 1, bias=False, dtype=torch.float32)
+        self.v_head = nn.Linear(config.hidden_size, 1, bias=False, dtype=torch.float16)
         self.loss_fn = PairWiseLoss()
 
     def gradient_checkpointing_enable(self):
