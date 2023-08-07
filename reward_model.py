@@ -77,7 +77,7 @@ class RewardModel(PreTrainedModel):
 
         # print("hidden_states: ", type(hidden_states), hidden_states.dtype)
         rewards = self.v_head(hidden_states).squeeze(-1)
-
+        rewards = rewards.to(torch.float32)  # 避免 RuntimeError: expected scalar type Float but found Half
         rewards = rewards.mean(dim=-1)
         if len(rewards.shape) == 2:
             rewards = rewards.squeeze(1)    # ensure shape is (B)
