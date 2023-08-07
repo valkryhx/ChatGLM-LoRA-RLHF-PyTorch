@@ -37,7 +37,8 @@ class RewardModel(PreTrainedModel):
         print("model_type: ", self.model_type)
         self.pad_id = tokenizer.pad_token_id
         self.transformer = model
-        self.v_head = nn.Linear(config.hidden_size, 1, bias=False, dtype=torch.float16)
+        #定义v_head时也要注意dtype是float32避免 RuntimeError: expected scalar type Float but found Half
+        self.v_head = nn.Linear(config.hidden_size, 1, bias=False, dtype=torch.float32) 
         self.loss_fn = PairWiseLoss()
 
     def gradient_checkpointing_enable(self):
@@ -77,7 +78,7 @@ class RewardModel(PreTrainedModel):
 
         # print("hidden_states: ", type(hidden_states), hidden_states.dtype)
         rewards = self.v_head(hidden_states).squeeze(-1)
-        rewards = rewards.to(torch.float32)  # 避免 RuntimeError: expected scalar type Float but found Half
+        rewards = rewards.to(torch.float32)  # 定义v_head时也要注意dtype是float32避免 RuntimeError: expected scalar type Float but found Half
         rewards = rewards.mean(dim=-1)
         if len(rewards.shape) == 2:
             rewards = rewards.squeeze(1)    # ensure shape is (B)
